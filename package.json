@@ -1,0 +1,41 @@
+{
+  "name": "notepad-electron",
+  "version": "1.0.0",
+  "description": "A simple notepad application built with Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --enable-features=UseOzonePlatform --ozone-platform=wayland",
+    "start:x11": "electron ."
+  },
+  "keywords": ["electron", "notepad", "text-editor"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.notepad.electron",
+    "productName": "Notepad",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png"
+    }
+  }
+}
