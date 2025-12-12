@@ -4,8 +4,12 @@
   "description": "A simple notepad application built with Electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --enable-features=UseOzonePlatform --ozone-platform=wayland",
-    "start:x11": "electron ."
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux"
   },
   "keywords": ["electron", "notepad", "text-editor"],
   "author": "Your Name",
@@ -16,7 +20,7 @@
   },
   "build": {
     "appId": "com.notepad.electron",
-    "productName": "Notepad",
+    "productName": "Fast Paced Editor",
     "directories": {
       "output": "dist"
     },
