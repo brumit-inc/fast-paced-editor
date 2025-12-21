@@ -1,33 +1,39 @@
 {
-  "name": "notepad-electron",
+  "name": "FastPacedEditor",
+  "productName": "Fast Paced Editor",
   "version": "1.0.0",
-  "description": "A simple notepad application built with Electron",
-  "main": "main.js",
+  "description": "Fast Paced Coding Editor",
+  "main": "main/main.js",
   "scripts": {
     "start": "electron .",
+    "wayland": "electron . --ozone-platform=wayland",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
     "build:all": "electron-builder --win --mac --linux"
   },
-  "keywords": ["electron", "notepad", "text-editor"],
-  "author": "Your Name",
+  "keywords": ["Fast-Paced-Editor", "notepad", "text-editor"],
+  "author": "Brumit Inc",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/fast-paced-editor"
+  },
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1"
   },
   "build": {
-    "appId": "com.notepad.electron",
-    "productName": "Fast Paced Editor",
+    "appId": "com.brumitinc.electron",
+    "productName": "FastPacedEditor",
     "directories": {
       "output": "dist"
     },
     "files": [
-      "main.js",
-      "preload.js",
-      "src/**/*"
+      "main/**/*",
+      "preload/**/*",
+      "renderer/**/*"
     ],
     "win": {
       "target": ["nsis"],

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>Fast Paced Editor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="top-bar">
+    <button class="circle-btn" id="filesBtn" title="Files">
+      📁 <span>Files</span>
+    </button>
+    <button class="circle-btn active" id="editorBtn" title="Editor">
+      📝 <span>Editor</span>
+    </button>
+    <button class="circle-btn" id="gitBtn" title="Git">
+      🔀 <span>Git</span>
+    </button>
+    <button class="circle-btn" id="settingsBtn" title="Settings">
+      ⚙️ <span>Settings</span>
+    </button>
+  </div>
+  
+  <div class="container">
+    <div id="filesView">
+      <div class="folder-header">
+        📁 File Explorer
+        <button class="open-folder-btn" id="openFolderBtn">Open Folder</button>
+      </div>
+      
+      <!-- Recent Sections - Always visible when Files view is active -->
+      <div id="recentSections" style="display: none;">
+        <div class="recent-section">
+          <div class="recent-header">📁 Recent Folders</div>
+          <ul class="file-tree" id="recentFoldersList"></ul>
+        </div>
+        
+        <div class="recent-section" style="margin-top: 20px;">
+          <div class="recent-header">📄 Recent Files</div>
+          <ul class="file-tree" id="recentFilesList"></ul>
+        </div>
+      </div>
+      
+      <div id="folderContent" style="display: none;">
+        <div class="folder-path" id="folderPath"></div>
+        
+        <ul class="file-tree" id="fileTree">
+        </ul>
+      </div>
+      
+      <div id="noFolder" style="color: #888; text-align: center; margin-top: 40px;">
+        No folder opened. Click "Open Folder" to get started.
+      </div>
+    </div>
+    
+    <textarea 
+      id="editor" 
+      placeholder="Start typing..."
+      spellcheck="false"
+    ></textarea>
+    
+    <div id="gitView">
+      <div class="git-header">📊 Git Status</div>
+      
+      <div id="gitContent">
+        <div class="branch-info">
+          <strong>Branch:</strong> <span id="branchName">-</span><br>
+          <strong>Repository:</strong> <span id="repoPath">No folder opened</span>
+        </div>
+        
+        <div class="git-section" id="stagedSection" style="display: none;">
+          <div class="git-section-title">Changes to be committed:</div>
+          <div id="stagedFiles"></div>
+        </div>
+        
+        <div class="git-section" id="unstagedSection" style="display: none;">
+          <div class="git-section-title">Changes not staged for commit:</div>
+          <div id="unstagedFiles"></div>
+        </div>
+        
+        <div class="git-section" id="untrackedSection" style="display: none;">
+          <div class="git-section-title">Untracked files:</div>
+          <div id="untrackedFiles"></div>
+        </div>
+        
+        <div class="git-section" id="commitSection" style="display: none;">
+          <div class="git-section-title">Commit Changes</div>
+          <div class="commit-form">
+            <textarea 
+              id="commitMessage" 
+              placeholder="Enter commit message..."
+              rows="3"
+            ></textarea>
+            <button id="commitBtn" class="commit-btn">Commit</button>
+            <button id="refreshGitBtn" class="refresh-btn" title="Refresh">↻</button>
+          </div>
+        </div>
+        
+        <div id="noGitRepo" style="color: #888; margin-top: 20px;">
+          Open a folder with a Git repository to see status.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="setting-group">
+      <label class="setting-label">Font Size</label>
+      <input type="number" class="setting-control" id="fontSizeInput" value="14" min="8" max="32">
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Tab Size</label>
+      <input type="number" class="setting-control" id="tabSizeInput" value="4" min="1" max="8">
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Theme</label>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-theme="dark">Dark</button>
+        <button class="toggle-btn" data-theme="light">Light</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Indentation</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-indent="tabs">Tabs</button>
+        <button class="toggle-btn active" data-indent="spaces">Spaces</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="status-bar">
+    <span id="status">Ready</span>
+    <span id="cursor-position">Ln 1, Col 1</span>
+  </div>
+  
+  <!-- About Dialog -->
+  <div id="aboutDialog" class="about-dialog" style="display: none;">
+    <div class="about-dialog-content">
+      <div class="about-header">
+        <h2 id="aboutAppName">Fast Paced Editor</h2>
+        <button class="about-close-btn" id="aboutCloseBtn">×</button>
+      </div>
+      <div class="about-body">
+        <p class="about-version">Version <span id="aboutVersion">1.0.0</span></p>
+        <p class="about-description" id="aboutDescription">Fast Paced Coding Editor</p>
+        <div class="about-links">
+          <a href="#" id="aboutGitHubLink" target="_blank" class="about-link">
+            <span>🔗</span> GitHub Repository
+          </a>
+        </div>
+        <div class="about-footer">
+          <p>© 2024 Brumit Inc</p>
+          <p>MIT License</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="main.js"></script>
+</body>
+</html>
+

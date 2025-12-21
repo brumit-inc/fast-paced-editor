@@ -3,21 +3,665 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Untitled - Notepad</title>
+  <title>Fast Paced Editor</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="top-bar">
+    <button class="circle-btn" id="filesBtn" title="Files">
+      📁 <span>Files</span>
+    </button>
+    <button class="circle-btn active" id="editorBtn" title="Editor">
+      📝 <span>Editor</span>
+    </button>
+    <button class="circle-btn" id="gitBtn" title="Git">
+      🔀 <span>Git</span>
+    </button>
+    <button class="circle-btn" id="settingsBtn" title="Settings">
+      ⚙️ <span>Settings</span>
+    </button>
+  </div>
+  
   <div class="container">
+    <div id="filesView">
+      <div class="folder-header">
+        📁 File Explorer
+        <button class="open-folder-btn" id="openFolderBtn">Open Folder</button>
+      </div>
+      
+      <!-- Recent Sections - Always visible when Files view is active -->
+      <div id="recentSections" style="display: none;">
+        <div class="recent-section">
+          <div class="recent-header">📁 Recent Folders</div>
+          <ul class="file-tree" id="recentFoldersList"></ul>
+        </div>
+        
+        <div class="recent-section" style="margin-top: 20px;">
+          <div class="recent-header">📄 Recent Files</div>
+          <ul class="file-tree" id="recentFilesList"></ul>
+        </div>
+      </div>
+      
+      <div id="folderContent" style="display: none;">
+        <div class="folder-path" id="folderPath"></div>
+        
+        <ul class="file-tree" id="fileTree">
+        </ul>
+      </div>
+      
+      <div id="noFolder" style="color: #888; text-align: center; margin-top: 40px;">
+        No folder opened. Click "Open Folder" to get started.
+      </div>
+    </div>
+    
     <textarea 
       id="editor" 
       placeholder="Start typing..."
       spellcheck="false"
     ></textarea>
+    
+    <div id="gitView">
+      <div class="git-header">📊 Git Status</div>
+      
+      <div id="gitContent">
+        <div class="branch-info">
+          <strong>Branch:</strong> <span id="branchName">-</span><br>
+          <strong>Repository:</strong> <span id="repoPath">No folder opened</span>
+        </div>
+        
+        <div class="git-section" id="stagedSection" style="display: none;">
+          <div class="git-section-title">Changes to be committed:</div>
+          <div id="stagedFiles"></div>
+        </div>
+        
+        <div class="git-section" id="unstagedSection" style="display: none;">
+          <div class="git-section-title">Changes not staged for commit:</div>
+          <div id="unstagedFiles"></div>
+        </div>
+        
+        <div class="git-section" id="untrackedSection" style="display: none;">
+          <div class="git-section-title">Untracked files:</div>
+          <div id="untrackedFiles"></div>
+        </div>
+        
+        <div id="noGitRepo" style="color: #888; margin-top: 20px;">
+          Open a folder with a Git repository to see status.
+        </div>
+      </div>
+    </div>
   </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="setting-group">
+      <label class="setting-label">Font Size</label>
+      <input type="number" class="setting-control" id="fontSizeInput" value="14" min="8" max="32">
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Tab Size</label>
+      <input type="number" class="setting-control" id="tabSizeInput" value="4" min="1" max="8">
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Theme</label>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-theme="dark">Dark</button>
+        <button class="toggle-btn" data-theme="light">Light</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label">Indentation</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-indent="tabs">Tabs</button>
+        <button class="toggle-btn active" data-indent="spaces">Spaces</button>
+      </div>
+    </div>
+  </div>
+  
   <div class="status-bar">
     <span id="status">Ready</span>
     <span id="cursor-position">Ln 1, Col 1</span>
   </div>
-  <script src="renderer.js"></script>
+  
+  <script>
+    // DOM Elements
+    const buttons = document.querySelectorAll('.circle-btn');
+    const editor = document.getElementById('editor');
+    const gitView = document.getElementById('gitView');
+    const filesView = document.getElementById('filesView');
+    const cursorPosition = document.getElementById('cursor-position');
+    const status = document.getElementById('status');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const fontSizeInput = document.getElementById('fontSizeInput');
+    const tabSizeInput = document.getElementById('tabSizeInput');
+    const editorBtn = document.getElementById('editorBtn');
+    const gitBtn = document.getElementById('gitBtn');
+    const filesBtn = document.getElementById('filesBtn');
+    const openFolderBtn = document.getElementById('openFolderBtn');
+
+    // State
+    let useSpaces = true;
+    let tabSize = 4;
+    let currentFolder = null;
+    let currentFolderPath = null;
+    let folderHandle = null;
+    let recentFolders = [];
+    let recentFiles = [];
+    const MAX_RECENT_FOLDERS = 10;
+    const MAX_RECENT_FILES = 10;
+
+    // Recent Folders Management
+    function loadRecentFolders() {
+      try {
+        const stored = localStorage.getItem('recentFolders');
+        if (stored) {
+          recentFolders = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error('Error loading recent folders:', e);
+      }
+    }
+
+    function saveRecentFolders() {
+      try {
+        localStorage.setItem('recentFolders', JSON.stringify(recentFolders));
+      } catch (e) {
+        console.error('Error saving recent folders:', e);
+      }
+    }
+
+    function addToRecentFolders(folderName, folderPath) {
+      recentFolders = recentFolders.filter(f => f.path !== folderPath);
+      recentFolders.unshift({ name: folderName, path: folderPath });
+      recentFolders = recentFolders.slice(0, MAX_RECENT_FOLDERS);
+      saveRecentFolders();
+      updateRecentFoldersUI();
+    }
+
+    function updateRecentFoldersUI() {
+      const recentFoldersList = document.getElementById('recentFoldersList');
+      if (!recentFoldersList) return;
+      
+      recentFoldersList.innerHTML = '';
+      
+      if (recentFolders.length > 0) {
+        recentFolders.forEach((folder, index) => {
+          const li = document.createElement('li');
+          li.className = 'folder';
+          li.innerHTML = `📁 ${folder.name}`;
+          li.style.cursor = 'pointer';
+          li.title = folder.path;
+          li.addEventListener('click', async () => {
+            await openFolderByPath(folder.path);
+          });
+          recentFoldersList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.style.color = '#888';
+        li.textContent = 'No recent folders';
+        recentFoldersList.appendChild(li);
+      }
+    }
+
+    // Recent Files Management
+    function loadRecentFiles() {
+      try {
+        const stored = localStorage.getItem('recentFiles');
+        if (stored) {
+          recentFiles = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error('Error loading recent files:', e);
+      }
+    }
+
+    function saveRecentFiles() {
+      try {
+        localStorage.setItem('recentFiles', JSON.stringify(recentFiles));
+      } catch (e) {
+        console.error('Error saving recent files:', e);
+      }
+    }
+
+    function addToRecentFiles(fileName, filePath, folderPath) {
+      recentFiles = recentFiles.filter(f => f.path !== filePath);
+      recentFiles.unshift({ 
+        name: fileName, 
+        path: filePath,
+        folderPath: folderPath 
+      });
+      recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
+      saveRecentFiles();
+      updateRecentFilesUI();
+    }
+
+    function updateRecentFilesUI() {
+      const recentFilesList = document.getElementById('recentFilesList');
+      if (!recentFilesList) return;
+      
+      recentFilesList.innerHTML = '';
+      
+      if (recentFiles.length > 0) {
+        recentFiles.forEach((file) => {
+          const li = document.createElement('li');
+          li.className = 'file';
+          const icon = getFileIcon(file.name);
+          li.innerHTML = `${icon} ${file.name}`;
+          li.style.cursor = 'pointer';
+          li.title = file.path;
+          li.addEventListener('click', async () => {
+            await openFileByPath(file.path, file.folderPath);
+          });
+          recentFilesList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.style.color = '#888';
+        li.textContent = 'No recent files';
+        recentFilesList.appendChild(li);
+      }
+    }
+
+    // Open folder by path
+    async function openFolderByPath(folderPath) {
+      try {
+        if (!window.electronAPI || !window.electronAPI.checkPathExists) {
+          status.textContent = 'Electron API not available';
+          return;
+        }
+
+        const check = await window.electronAPI.checkPathExists(folderPath);
+        if (!check.exists || !check.isDirectory) {
+          status.textContent = 'Folder not found';
+          // Remove from recent folders
+          recentFolders = recentFolders.filter(f => f.path !== folderPath);
+          saveRecentFolders();
+          updateRecentFoldersUI();
+          return;
+        }
+
+        currentFolderPath = folderPath;
+        const folderName = folderPath.split(/[/\\]/).pop();
+        currentFolder = folderName;
+        
+        document.getElementById('folderPath').textContent = folderName;
+        document.getElementById('folderContent').style.display = 'block';
+        document.getElementById('noFolder').style.display = 'none';
+        // Keep recent sections visible even when folder is open
+        if (filesView.classList.contains('active')) {
+          document.getElementById('recentSections').style.display = 'block';
+        }
+        
+        await loadFolderContentsByPath(folderPath);
+        
+        document.getElementById('repoPath').textContent = folderName;
+        document.getElementById('branchName').textContent = 'main';
+        document.getElementById('noGitRepo').style.display = 'none';
+        
+        showExampleGitStatus();
+        addToRecentFolders(folderName, folderPath);
+        // Update recent sections UI after opening folder
+        updateRecentFoldersUI();
+        updateRecentFilesUI();
+        
+        status.textContent = `Opened: ${folderName}`;
+      } catch (err) {
+        console.error('Error opening folder by path:', err);
+        status.textContent = 'Error opening folder';
+      }
+    }
+
+    // Load folder contents using Electron API
+    async function loadFolderContentsByPath(folderPath) {
+      const fileTree = document.getElementById('fileTree');
+      fileTree.innerHTML = '';
+      
+      try {
+        const result = await window.electronAPI.readFolder(folderPath);
+        if (!result.success) {
+          status.textContent = `Error: ${result.error}`;
+          return;
+        }
+        
+        const entries = result.entries.sort((a, b) => {
+          if (a.kind === b.kind) return a.name.localeCompare(b.name);
+          return a.kind === 'directory' ? -1 : 1;
+        });
+        
+        for (const entry of entries) {
+          const li = document.createElement('li');
+          
+          if (entry.kind === 'directory') {
+            li.className = 'folder';
+            li.innerHTML = `📁 ${entry.name}`;
+          } else {
+            li.className = 'file';
+            const icon = getFileIcon(entry.name);
+            li.innerHTML = `${icon} ${entry.name}`;
+            
+            li.addEventListener('click', async () => {
+              await openFileByPath(entry.path, folderPath);
+            });
+          }
+          
+          fileTree.appendChild(li);
+        }
+      } catch (err) {
+        console.error('Error loading folder contents:', err);
+        status.textContent = 'Error loading folder contents';
+      }
+    }
+
+    // Open file by path
+    async function openFileByPath(filePath, folderPath) {
+      try {
+        // First, open the folder if not already open
+        if (currentFolderPath !== folderPath) {
+          await openFolderByPath(folderPath);
+        }
+        
+        // Read file content
+        if (!window.electronAPI || !window.electronAPI.readFile) {
+          status.textContent = 'Electron API not available';
+          return;
+        }
+
+        const result = await window.electronAPI.readFile(filePath);
+        if (!result.success) {
+          status.textContent = `Error: ${result.error}`;
+          return;
+        }
+        
+        editor.value = result.content;
+        editor.style.display = 'block';
+        gitView.classList.remove('active');
+        filesView.classList.remove('active');
+        
+        buttons.forEach(b => b.classList.remove('active'));
+        editorBtn.classList.add('active');
+        
+        const fileName = filePath.split(/[/\\]/).pop();
+        addToRecentFiles(fileName, filePath, folderPath);
+        
+        status.textContent = `Opened: ${fileName}`;
+      } catch (err) {
+        console.error('Error opening file:', err);
+        status.textContent = 'Error opening file';
+      }
+    }
+
+    // Navigation
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.id === 'settingsBtn') {
+          settingsPanel.classList.toggle('active');
+        } else {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          settingsPanel.classList.remove('active');
+          
+          editor.style.display = 'none';
+          gitView.classList.remove('active');
+          filesView.classList.remove('active');
+          
+          if (btn.id === 'gitBtn') {
+            gitView.classList.add('active');
+          } else if (btn.id === 'editorBtn') {
+            editor.style.display = 'block';
+          } else if (btn.id === 'filesBtn') {
+            filesView.classList.add('active');
+            updateRecentFoldersUI();
+            updateRecentFilesUI();
+            // Always show recent sections when Files view is active
+            document.getElementById('recentSections').style.display = 'block';
+          }
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!settingsPanel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target)) {
+        settingsPanel.classList.remove('active');
+      }
+    });
+
+    // Settings Controls
+    fontSizeInput.addEventListener('input', (e) => {
+      editor.style.fontSize = e.target.value + 'px';
+    });
+
+    tabSizeInput.addEventListener('input', (e) => {
+      tabSize = parseInt(e.target.value);
+    });
+
+    document.querySelectorAll('[data-theme]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-theme]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        if (e.target.dataset.theme === 'light') {
+          document.body.classList.add('light-mode');
+        } else {
+          document.body.classList.remove('light-mode');
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-indent]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-indent]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        useSpaces = e.target.dataset.indent === 'spaces';
+      });
+    });
+
+    editor.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const indent = useSpaces ? ' '.repeat(tabSize) : '\t';
+        
+        editor.value = editor.value.substring(0, start) + indent + editor.value.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + indent.length;
+      }
+    });
+
+    // Folder Operations
+    openFolderBtn.addEventListener('click', async () => {
+      try {
+        if (window.electronAPI && window.electronAPI.showFolderDialog) {
+          const folderPath = await window.electronAPI.showFolderDialog();
+          if (folderPath) {
+            await openFolderByPath(folderPath);
+          }
+        } else {
+          // Fallback to File System Access API
+          folderHandle = await window.showDirectoryPicker();
+          await openFolderWithHandle(folderHandle);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Error opening folder:', err);
+          status.textContent = 'Error opening folder';
+        }
+      }
+    });
+
+    // Legacy function for File System Access API (fallback)
+    async function openFolderWithHandle(handle) {
+      try {
+        folderHandle = handle;
+        currentFolder = handle.name;
+        
+        document.getElementById('folderPath').textContent = handle.name;
+        document.getElementById('folderContent').style.display = 'block';
+        document.getElementById('noFolder').style.display = 'none';
+        // Keep recent sections visible even when folder is open
+        if (filesView.classList.contains('active')) {
+          document.getElementById('recentSections').style.display = 'block';
+        }
+        
+        await loadFolderContents(handle);
+        
+        document.getElementById('repoPath').textContent = handle.name;
+        document.getElementById('branchName').textContent = 'main';
+        document.getElementById('noGitRepo').style.display = 'none';
+        
+        showExampleGitStatus();
+        // Note: Can't store handle, so we can't add to recent folders with File System Access API
+        status.textContent = `Opened: ${handle.name}`;
+      } catch (err) {
+        console.error('Error opening folder:', err);
+        status.textContent = 'Error opening folder';
+      }
+    }
+
+    // Legacy function for File System Access API (fallback)
+    async function loadFolderContents(dirHandle) {
+      const fileTree = document.getElementById('fileTree');
+      fileTree.innerHTML = '';
+      
+      const entries = [];
+      for await (const entry of dirHandle.values()) {
+        entries.push(entry);
+      }
+      
+      entries.sort((a, b) => {
+        if (a.kind === b.kind) return a.name.localeCompare(b.name);
+        return a.kind === 'directory' ? -1 : 1;
+      });
+      
+      for (const entry of entries) {
+        const li = document.createElement('li');
+        
+        if (entry.kind === 'directory') {
+          li.className = 'folder';
+          li.innerHTML = `📁 ${entry.name}`;
+        } else {
+          li.className = 'file';
+          const icon = getFileIcon(entry.name);
+          li.innerHTML = `${icon} ${entry.name}`;
+          
+          li.addEventListener('click', async () => {
+            await openFile(entry);
+          });
+        }
+        
+        fileTree.appendChild(li);
+      }
+    }
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        'js': '📜', 'json': '📋', 'html': '🌐', 'css': '🎨',
+        'md': '📝', 'txt': '📄', 'png': '🖼️', 'jpg': '🖼️', 'gif': '🖼️'
+      };
+      return icons[ext] || '📄';
+    }
+
+    // Legacy function for File System Access API (fallback)
+    async function openFile(fileHandle) {
+      try {
+        const file = await fileHandle.getFile();
+        const content = await file.text();
+        
+        editor.value = content;
+        editor.style.display = 'block';
+        gitView.classList.remove('active');
+        filesView.classList.remove('active');
+        
+        buttons.forEach(b => b.classList.remove('active'));
+        editorBtn.classList.add('active');
+        
+        status.textContent = `Opened: ${file.name}`;
+      } catch (err) {
+        console.error('Error reading file:', err);
+        status.textContent = 'Error reading file';
+      }
+    }
+
+    function showExampleGitStatus() {
+      document.getElementById('stagedSection').style.display = 'block';
+      document.getElementById('stagedFiles').innerHTML = `
+        <div class="git-file">
+          <span class="git-status-badge modified">M</span>
+          <span>src/index.js</span>
+        </div>
+      `;
+      
+      document.getElementById('unstagedSection').style.display = 'block';
+      document.getElementById('unstagedFiles').innerHTML = `
+        <div class="git-file">
+          <span class="git-status-badge modified">M</span>
+          <span>README.md</span>
+        </div>
+      `;
+      
+      document.getElementById('untrackedSection').style.display = 'block';
+      document.getElementById('untrackedFiles').innerHTML = `
+        <div class="git-file">
+          <span class="git-status-badge untracked">U</span>
+          <span>new-feature.js</span>
+        </div>
+      `;
+    }
+
+    function updateCursorPosition() {
+      const text = editor.value;
+      const cursorPos = editor.selectionStart;
+      const textBeforeCursor = text.substring(0, cursorPos);
+      const lines = textBeforeCursor.split('\n');
+      const line = lines.length;
+      const col = lines[lines.length - 1].length + 1;
+      
+      cursorPosition.textContent = `Ln ${line}, Col ${col}`;
+    }
+
+    editor.addEventListener('keyup', updateCursorPosition);
+    editor.addEventListener('click', updateCursorPosition);
+
+    let typingTimer;
+    editor.addEventListener('input', () => {
+      status.textContent = 'Editing...';
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        status.textContent = 'Ready';
+      }, 1000);
+    });
+
+    // Initialize and auto-open last folder
+    loadRecentFolders();
+    loadRecentFiles();
+    updateRecentFoldersUI();
+    updateRecentFilesUI();
+    
+    // Show recent sections initially if Files view might be shown
+    // They'll be shown/hidden based on Files view state
+    if (filesView.classList.contains('active')) {
+      document.getElementById('recentSections').style.display = 'block';
+    }
+    
+    // Auto-open last folder on startup
+    if (recentFolders.length > 0 && window.electronAPI && window.electronAPI.checkPathExists) {
+      const lastFolder = recentFolders[0];
+      // Check if folder still exists
+      window.electronAPI.checkPathExists(lastFolder.path).then(check => {
+        if (check.exists && check.isDirectory) {
+          // Auto-open the last folder
+          openFolderByPath(lastFolder.path);
+        } else {
+          // Remove invalid folder from list
+          recentFolders = recentFolders.filter(f => f.path !== lastFolder.path);
+          saveRecentFolders();
+          updateRecentFoldersUI();
+        }
+      });
+    }
+  </script>
 </body>
 </html>

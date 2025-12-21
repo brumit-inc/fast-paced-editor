@@ -1,4 +1,4 @@
-# Electron Notepad
+# Fast Paced Editor
 
 A simple notepad application built with Electron.
 

@@ -5,5 +5,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFileOpened: (callback) => ipcRenderer.on('file-opened', (event, data) => callback(data)),
   onRequestSaveContent: (callback) => ipcRenderer.on('request-save-content', callback),
   onFileSaved: (callback) => ipcRenderer.on('file-saved', callback),
-  saveContent: (content) => ipcRenderer.send('save-content', content)
+  saveContent: (content) => ipcRenderer.send('save-content', content),
+  showFolderDialog: () => ipcRenderer.invoke('show-folder-dialog'),
+  readFolder: (path) => ipcRenderer.invoke('read-folder', path),
+  readFile: (path) => ipcRenderer.invoke('read-file', path),
+  checkPathExists: (path) => ipcRenderer.invoke('check-path-exists', path)
 });
