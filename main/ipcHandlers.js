@@ -161,8 +161,12 @@ function register(mainWindow) {
       const untracked = [];
 
       for (const line of lines) {
+        if (line.length < 4) continue; // Skip invalid lines
+        
         const status = line.substring(0, 2);
-        const filePath = line.substring(3);
+        // Git status --porcelain format: "XY filename" where XY is 2-char status, then space, then filename
+        // Position 0-1: status code, position 2: space, position 3+: filename
+        const filePath = line.substring(3).trim();
         
         const statusX = status[0]; // Index status
         const statusY = status[1]; // Working tree status
@@ -265,6 +269,47 @@ function register(mainWindow) {
       return { success: true };
     } catch (err) {
       console.error('Error committing:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Get git log (commit history)
+  ipcMain.handle('git-log', async (event, folderPath, limit = 20) => {
+    try {
+      if (!folderPath || typeof folderPath !== 'string') {
+        return { success: false, error: 'Invalid path' };
+      }
+
+      // Check if it's a git repo first
+      const gitPath = path.join(folderPath, '.git');
+      if (!fs.existsSync(gitPath)) {
+        return { success: false, error: 'Not a git repository' };
+      }
+
+      // Get git log with format: hash|author|date|message
+      // Using %x1F as delimiter (unit separator character) to avoid conflicts
+      const { stdout: logOutput } = await execAsync(
+        `git log --pretty=format:"%H%x1F%an%x1F%ad%x1F%s" --date=iso -n ${limit}`,
+        { cwd: folderPath }
+      );
+
+      const lines = logOutput.trim().split('\n').filter(line => line.length > 0);
+      const commits = lines.map(line => {
+        const [hash, author, date, message] = line.split('\x1F');
+        return {
+          hash: hash || '',
+          author: author || '',
+          date: date || '',
+          message: message || ''
+        };
+      });
+
+      return {
+        success: true,
+        commits
+      };
+    } catch (err) {
+      console.error('Error getting git log:', err);
       return { success: false, error: err.message };
     }
   });

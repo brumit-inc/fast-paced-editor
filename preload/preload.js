@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   gitStage: (folderPath, filePath) => ipcRenderer.invoke('git-stage', folderPath, filePath),
   gitUnstage: (folderPath, filePath) => ipcRenderer.invoke('git-unstage', folderPath, filePath),
   gitCommit: (folderPath, message) => ipcRenderer.invoke('git-commit', folderPath, message),
+  gitLog: (folderPath, limit) => ipcRenderer.invoke('git-log', folderPath, limit),
   
   // Recent items sync
   syncRecentFolder: (folderName, folderPath) => ipcRenderer.invoke('sync-recent-folder', folderName, folderPath),

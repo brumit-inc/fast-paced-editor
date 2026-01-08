@@ -15,10 +15,10 @@
   },
   "keywords": ["Fast-Paced-Editor", "notepad", "text-editor"],
   "author": "Brumit Inc",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/fast-paced-editor"
+    "url": "https://github.com/brumit-inc/fast-paced-editor"
   },
   "devDependencies": {
     "electron": "^28.0.0",

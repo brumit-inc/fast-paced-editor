@@ -37,6 +37,9 @@ export async function refreshGitStatus() {
     }
 
     displayGitStatus(status);
+    
+    // Also refresh commit history
+    await refreshCommitHistory();
   } catch (err) {
     console.error('Error refreshing git status:', err);
     showError('Error refreshing git status');
@@ -49,6 +52,7 @@ function clearGitStatus() {
   const stagedSection = document.getElementById('stagedSection');
   const unstagedSection = document.getElementById('unstagedSection');
   const untrackedSection = document.getElementById('untrackedSection');
+  const commitHistorySection = document.getElementById('commitHistorySection');
   const noGitRepo = document.getElementById('noGitRepo');
 
   if (branchName) branchName.textContent = '-';
@@ -56,6 +60,7 @@ function clearGitStatus() {
   if (stagedSection) stagedSection.style.display = 'none';
   if (unstagedSection) unstagedSection.style.display = 'none';
   if (untrackedSection) untrackedSection.style.display = 'none';
+  if (commitHistorySection) commitHistorySection.style.display = 'none';
   if (noGitRepo) noGitRepo.style.display = 'block';
 }
 
@@ -65,6 +70,7 @@ function showNoGitRepo() {
   const stagedSection = document.getElementById('stagedSection');
   const unstagedSection = document.getElementById('unstagedSection');
   const untrackedSection = document.getElementById('untrackedSection');
+  const commitHistorySection = document.getElementById('commitHistorySection');
   const noGitRepo = document.getElementById('noGitRepo');
 
   if (branchName) branchName.textContent = '-';
@@ -72,6 +78,7 @@ function showNoGitRepo() {
   if (stagedSection) stagedSection.style.display = 'none';
   if (unstagedSection) unstagedSection.style.display = 'none';
   if (untrackedSection) untrackedSection.style.display = 'none';
+  if (commitHistorySection) commitHistorySection.style.display = 'none';
   if (noGitRepo) noGitRepo.style.display = 'block';
 }
 
@@ -228,8 +235,9 @@ export async function commitChanges(message) {
       const commitMessage = document.getElementById('commitMessage');
       if (commitMessage) commitMessage.value = '';
       
-      // Refresh git status after commit
+      // Refresh git status and commit history after commit
       await refreshGitStatus();
+      await refreshCommitHistory();
       return true;
     } else {
       alert(result?.error || 'Failed to commit');
@@ -266,7 +274,108 @@ export function initializeCommitButton() {
   if (refreshBtn) {
     refreshBtn.addEventListener('click', async () => {
       await refreshGitStatus();
+      await refreshCommitHistory();
     });
+  }
+}
+
+// Commit history functions
+export async function refreshCommitHistory() {
+  if (!currentRepoPath) {
+    clearCommitHistory();
+    return;
+  }
+
+  if (!window.electronAPI || !window.electronAPI.gitLog) {
+    console.error('Git Log API not available');
+    return;
+  }
+
+  try {
+    // Check if it's a git repo
+    const repoCheck = await window.electronAPI.gitIsRepo(currentRepoPath);
+    if (!repoCheck.isRepo) {
+      clearCommitHistory();
+      return;
+    }
+
+    // Get commit history (last 20 commits)
+    const logResult = await window.electronAPI.gitLog(currentRepoPath, 20);
+    if (!logResult.success) {
+      console.error('Failed to get commit history:', logResult.error);
+      clearCommitHistory();
+      return;
+    }
+
+    displayCommitHistory(logResult.commits || []);
+  } catch (err) {
+    console.error('Error refreshing commit history:', err);
+    clearCommitHistory();
+  }
+}
+
+function clearCommitHistory() {
+  const commitHistorySection = document.getElementById('commitHistorySection');
+  const commitHistory = document.getElementById('commitHistory');
+  
+  if (commitHistorySection) commitHistorySection.style.display = 'none';
+  if (commitHistory) commitHistory.innerHTML = '';
+}
+
+function displayCommitHistory(commits) {
+  const commitHistorySection = document.getElementById('commitHistorySection');
+  const commitHistory = document.getElementById('commitHistory');
+
+  if (!commitHistorySection || !commitHistory) {
+    return;
+  }
+
+  if (commits.length === 0) {
+    commitHistorySection.style.display = 'none';
+    commitHistory.innerHTML = '';
+    return;
+  }
+
+  commitHistorySection.style.display = 'block';
+  commitHistory.innerHTML = commits.map(commit => createCommitElement(commit)).join('');
+}
+
+function createCommitElement(commit) {
+  const shortHash = commit.hash ? commit.hash.substring(0, 7) : '';
+  const formattedDate = formatCommitDate(commit.date);
+  
+  return `
+    <div class="git-commit-item">
+      <div class="git-commit-header">
+        <span class="git-commit-hash">${escapeHtml(shortHash)}</span>
+        <span class="git-commit-author">${escapeHtml(commit.author)}</span>
+        <span class="git-commit-date">${escapeHtml(formattedDate)}</span>
+      </div>
+      <div class="git-commit-message">${escapeHtml(commit.message)}</div>
+    </div>
+  `;
+}
+
+function formatCommitDate(dateString) {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    // Format as date if older than a week
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+  } catch (err) {
+    return dateString;
   }
 }
 

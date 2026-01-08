@@ -113,37 +113,69 @@
           </div>
         </div>
         
+        <div class="git-section" id="commitHistorySection" style="display: none;">
+          <div class="git-section-title">Commit History</div>
+          <div id="commitHistory"></div>
+        </div>
+        
         <div id="noGitRepo" style="color: #888; margin-top: 20px;">
           Open a folder with a Git repository to see status.
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="settings-panel" id="settingsPanel">
-    <div class="setting-group">
-      <label class="setting-label">Font Size</label>
-      <input type="number" class="setting-control" id="fontSizeInput" value="14" min="8" max="32">
-    </div>
-
-    <div class="setting-group">
-      <label class="setting-label">Tab Size</label>
-      <input type="number" class="setting-control" id="tabSizeInput" value="4" min="1" max="8">
-    </div>
-
-    <div class="setting-group">
-      <label class="setting-label">Theme</label>
-      <div class="toggle-group">
-        <button class="toggle-btn active" data-theme="dark">Dark</button>
-        <button class="toggle-btn" data-theme="light">Light</button>
+    <div id="settingsView">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <p>Fine‑tune how Fast Paced Editor looks and behaves.</p>
       </div>
-    </div>
 
-    <div class="setting-group">
-      <label class="setting-label">Indentation</label>
-      <div class="toggle-group">
-        <button class="toggle-btn" data-indent="tabs">Tabs</button>
-        <button class="toggle-btn active" data-indent="spaces">Spaces</button>
+      <div class="settings-content">
+        <section class="settings-section">
+          <h3 class="settings-section-title">Editor</h3>
+          <p class="settings-section-description">
+            Control the core editing experience: font size and tab width.
+          </p>
+          <div class="settings-grid">
+            <div class="setting-group">
+              <label class="setting-label">Font Size (px)</label>
+              <input type="number" class="setting-control" id="fontSizeInput" value="14" min="8" max="32">
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">Tab Size (spaces)</label>
+              <input type="number" class="setting-control" id="tabSizeInput" value="4" min="1" max="8">
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="settings-section-title">Appearance</h3>
+          <p class="settings-section-description">
+            Switch between dark and light themes for the entire editor.
+          </p>
+          <div class="setting-group">
+            <label class="setting-label">Theme</label>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-theme="dark">Dark</button>
+              <button class="toggle-btn" data-theme="light">Light</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="settings-section-title">Indentation</h3>
+          <p class="settings-section-description">
+            Choose whether to indent with real tabs or spaces.
+          </p>
+          <div class="setting-group">
+            <label class="setting-label">Indent Using</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" data-indent="tabs">Tabs</button>
+              <button class="toggle-btn active" data-indent="spaces">Spaces</button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
