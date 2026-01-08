@@ -11,7 +11,15 @@ import {
   getRecentFolders,
   removeInvalidFolder
 } from './recentItems.js';
-import { openFolderByPath, handleOpenFolder, handleOpenFile, openFileByPath } from './fileManager.js';
+import { 
+  openFolderByPath, 
+  handleOpenFolder, 
+  handleOpenFile, 
+  openFileByPath,
+  setupFileTreeSearch,
+  setupExpandCollapseAll,
+  setupKeyboardNavigation
+} from './fileManager.js';
 import { initializeGitActions, initializeCommitButton } from './git.js';
 
 // Initialize when DOM is ready
@@ -27,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeSettings();
   initializeGitActions();
   initializeCommitButton();
+  
+  // Initialize file tree features
+  setupFileTreeSearch();
+  setupExpandCollapseAll();
+  setupKeyboardNavigation();
 
   // Load recent items
   loadRecentFolders();

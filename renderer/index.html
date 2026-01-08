@@ -25,33 +25,48 @@
   
   <div class="container">
     <div id="filesView">
-      <div class="folder-header">
-        📁 File Explorer
-        <button class="open-folder-btn" id="openFolderBtn">Open Folder</button>
-      </div>
-      
-      <!-- Recent Sections - Always visible when Files view is active -->
-      <div id="recentSections" style="display: none;">
-        <div class="recent-section">
-          <div class="recent-header">📁 Recent Folders</div>
-          <ul class="file-tree" id="recentFoldersList"></ul>
-        </div>
-        
-        <div class="recent-section" style="margin-top: 20px;">
-          <div class="recent-header">📄 Recent Files</div>
-          <ul class="file-tree" id="recentFilesList"></ul>
+      <div class="file-explorer-header">
+        <div class="folder-header">
+          <span>📁 File Explorer</span>
+          <div class="folder-actions">
+            <button class="folder-action-btn" id="collapseAllBtn" title="Collapse All" style="display: none;">−</button>
+            <button class="folder-action-btn" id="expandAllBtn" title="Expand All" style="display: none;">+</button>
+            <button class="open-folder-btn" id="openFolderBtn">Open Folder</button>
+          </div>
         </div>
       </div>
       
-      <div id="folderContent" style="display: none;">
-        <div class="folder-path" id="folderPath"></div>
+      <div class="file-explorer-content">
+        <!-- Recent Sections - Always visible when Files view is active -->
+        <div id="recentSections" style="display: none;">
+          <div class="recent-section">
+            <div class="recent-header">📁 Recent Folders</div>
+            <ul class="file-tree" id="recentFoldersList"></ul>
+          </div>
+          
+          <div class="recent-section" style="margin-top: 20px;">
+            <div class="recent-header">📄 Recent Files</div>
+            <ul class="file-tree" id="recentFilesList"></ul>
+          </div>
+        </div>
         
-        <ul class="file-tree" id="fileTree">
-        </ul>
-      </div>
-      
-      <div id="noFolder" style="color: #888; text-align: center; margin-top: 40px;">
-        No folder opened. Click "Open Folder" to get started.
+        <div id="folderContent" style="display: none;">
+          <input 
+            type="text" 
+            class="file-tree-search" 
+            id="fileTreeSearch" 
+            placeholder="Search files..."
+            style="display: none;"
+          />
+          <div class="folder-path" id="folderPath"></div>
+          
+          <ul class="file-tree" id="fileTree">
+          </ul>
+        </div>
+        
+        <div id="noFolder" style="color: #888; text-align: center; margin-top: 40px; padding: 20px;">
+          No folder opened. Click "Open Folder" to get started.
+        </div>
       </div>
     </div>
     
