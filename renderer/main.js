@@ -18,7 +18,9 @@ import {
   openFileByPath,
   setupFileTreeSearch,
   setupExpandCollapseAll,
-  setupKeyboardNavigation
+  setupKeyboardNavigation,
+  saveCurrentFile,
+  saveFileAs
 } from './fileManager.js';
 import { initializeGitActions, initializeCommitButton } from './git.js';
 
@@ -40,6 +42,32 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFileTreeSearch();
   setupExpandCollapseAll();
   setupKeyboardNavigation();
+  
+  // Keyboard shortcuts for save
+  document.addEventListener('keydown', async (e) => {
+    // Only handle if editor is focused or no input is focused
+    const activeElement = document.activeElement;
+    const isEditorFocused = activeElement && activeElement.id === 'editor';
+    const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+    
+    // Ctrl+S or Cmd+S for Save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+      // Don't prevent default if in an input field (unless it's the editor)
+      if (!isInputFocused || isEditorFocused) {
+        e.preventDefault();
+        await saveCurrentFile(status);
+      }
+    }
+    
+    // Ctrl+Shift+S or Cmd+Shift+S for Save As
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+      // Don't prevent default if in an input field (unless it's the editor)
+      if (!isInputFocused || isEditorFocused) {
+        e.preventDefault();
+        await saveFileAs(status);
+      }
+    }
+  });
 
   // Load recent items
   loadRecentFolders();
@@ -116,6 +144,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.electronAPI.onOpenFolderFromMenu) {
       window.electronAPI.onOpenFolderFromMenu((folderPath) => {
         openFolderByPath(folderPath, status, filesView);
+      });
+    }
+
+    // Handle Save from menu
+    if (window.electronAPI.onMenuSave) {
+      window.electronAPI.onMenuSave(async () => {
+        await saveCurrentFile(status);
+      });
+    }
+
+    // Handle Save As from menu
+    if (window.electronAPI.onMenuSaveAs) {
+      window.electronAPI.onMenuSaveAs(async () => {
+        await saveFileAs(status);
       });
     }
 

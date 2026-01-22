@@ -7,8 +7,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFileNew: (callback) => ipcRenderer.on('file-new', callback),
   onFileOpened: (callback) => ipcRenderer.on('file-opened', (event, data) => callback(data)),
   onRequestSaveContent: (callback) => ipcRenderer.on('request-save-content', callback),
-  onFileSaved: (callback) => ipcRenderer.on('file-saved', callback),
+  onFileSaved: (callback) => ipcRenderer.on('file-saved', (event, data) => callback(data)),
   saveContent: (content) => ipcRenderer.send('save-content', content),
+  saveFile: (content, filePath) => ipcRenderer.invoke('save-file', content, filePath),
+  saveFileAs: (content) => ipcRenderer.invoke('save-file-as', content),
   
   // Folder and file operations
   showFolderDialog: () => ipcRenderer.invoke('show-folder-dialog'),
@@ -33,6 +35,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Menu events
   onMenuOpenFile: (callback) => ipcRenderer.on('menu-open-file', callback),
   onMenuOpenFolder: (callback) => ipcRenderer.on('menu-open-folder', callback),
+  onMenuSave: (callback) => ipcRenderer.on('menu-save', callback),
+  onMenuSaveAs: (callback) => ipcRenderer.on('menu-save-as', callback),
   onOpenFileFromMenu: (callback) => ipcRenderer.on('open-file-from-menu', (event, filePath, folderPath) => callback(filePath, folderPath)),
   onOpenFolderFromMenu: (callback) => ipcRenderer.on('open-folder-from-menu', (event, folderPath) => callback(folderPath)),
   onMenuShowAbout: (callback) => ipcRenderer.on('menu-show-about', callback),

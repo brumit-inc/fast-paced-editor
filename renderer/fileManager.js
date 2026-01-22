@@ -9,9 +9,18 @@ const expandedFolders = new Set(); // Track expanded folder paths
 let selectedFilePath = null; // Track selected file/folder
 let fileTreeData = new Map(); // Cache folder contents
 let searchFilter = ''; // Current search filter
+let currentFilePath = null; // Track currently open file path for saving
 
 export function getCurrentFolderPath() {
   return currentFolderPath;
+}
+
+export function getCurrentFilePath() {
+  return currentFilePath;
+}
+
+export function setCurrentFilePath(filePath) {
+  currentFilePath = filePath;
 }
 
 export async function openFolderByPath(folderPath, statusElement, filesView) {
@@ -379,8 +388,12 @@ export async function openFileByPath(filePath, folderPath, statusElement) {
     }
     
     const editor = document.getElementById('editor');
+    const editorContainer = document.querySelector('.editor-container');
     editor.value = result.content;
-    editor.style.display = 'block';
+    
+    if (editorContainer) {
+      editorContainer.style.display = 'flex';
+    }
     
     const gitView = document.getElementById('gitView');
     const filesView = document.getElementById('filesView');
@@ -393,6 +406,9 @@ export async function openFileByPath(filePath, folderPath, statusElement) {
     
     const fileName = filePath.split(/[/\\]/).pop();
     addToRecentFiles(fileName, filePath, folderPath);
+    
+    // Track current file path for saving
+    currentFilePath = filePath;
     
     updateStatus(`Opened: ${fileName}`, statusElement);
   } catch (err) {
@@ -447,3 +463,90 @@ export async function handleOpenFile(statusElement) {
   }
 }
 
+export async function saveCurrentFile(statusElement) {
+  try {
+    if (!currentFilePath) {
+      // No file open, trigger Save As instead
+      return await saveFileAs(statusElement);
+    }
+
+    const editor = document.getElementById('editor');
+    if (!editor) {
+      updateStatus('Editor not found', statusElement);
+      return false;
+    }
+
+    if (!window.electronAPI || !window.electronAPI.saveFile) {
+      updateStatus('Electron API not available', statusElement);
+      return false;
+    }
+
+    const result = await window.electronAPI.saveFile(editor.value, currentFilePath);
+    if (result.success) {
+      updateStatus('File saved', statusElement);
+      // Refresh git status if in a repo
+      if (currentFolderPath) {
+        await refreshGitStatus();
+      }
+      return true;
+    } else {
+      updateStatus(`Error: ${result.error}`, statusElement);
+      return false;
+    }
+  } catch (err) {
+    console.error('Error saving file:', err);
+    updateStatus('Error saving file', statusElement);
+    return false;
+  }
+}
+
+export async function saveFileAs(statusElement) {
+  try {
+    const editor = document.getElementById('editor');
+    if (!editor) {
+      updateStatus('Editor not found', statusElement);
+      return false;
+    }
+
+    if (!window.electronAPI || !window.electronAPI.saveFileAs) {
+      updateStatus('Electron API not available', statusElement);
+      return false;
+    }
+
+    const result = await window.electronAPI.saveFileAs(editor.value);
+    if (result.success && result.filePath) {
+      // Update current file path
+      currentFilePath = result.filePath;
+      
+      // Extract folder path
+      const lastSeparator = Math.max(result.filePath.lastIndexOf('/'), result.filePath.lastIndexOf('\\'));
+      const folderPath = lastSeparator > 0 ? result.filePath.substring(0, lastSeparator) : result.filePath;
+      
+      // If folder is not open, open it
+      if (currentFolderPath !== folderPath) {
+        await openFolderByPath(folderPath, statusElement, document.getElementById('filesView'));
+      }
+      
+      // Add to recent files
+      const fileName = result.filePath.split(/[/\\]/).pop();
+      addToRecentFiles(fileName, result.filePath, folderPath);
+      
+      updateStatus(`Saved: ${fileName}`, statusElement);
+      
+      // Refresh git status if in a repo
+      if (currentFolderPath) {
+        await refreshGitStatus();
+      }
+      return true;
+    } else {
+      if (result.error) {
+        updateStatus(`Error: ${result.error}`, statusElement);
+      }
+      return false;
+    }
+  } catch (err) {
+    console.error('Error saving file as:', err);
+    updateStatus('Error saving file', statusElement);
+    return false;
+  }
+}

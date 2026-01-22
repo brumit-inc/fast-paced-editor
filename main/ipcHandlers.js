@@ -373,6 +373,82 @@ function register(mainWindow) {
       };
     }
   });
+
+  // Save file to specific path
+  ipcMain.handle('save-file', async (event, content, filePath) => {
+    try {
+      if (!filePath || typeof filePath !== 'string') {
+        return { success: false, error: 'Invalid file path' };
+      }
+
+      if (content === undefined || content === null) {
+        return { success: false, error: 'Content is required' };
+      }
+
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // Write file
+      fs.writeFileSync(filePath, content, 'utf-8');
+      
+      // Send save event to renderer
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('file-saved', { filePath });
+      }
+
+      return { success: true, filePath };
+    } catch (err) {
+      console.error('Error saving file:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Save file as (show save dialog)
+  ipcMain.handle('save-file-as', async (event, content) => {
+    try {
+      if (content === undefined || content === null) {
+        return { success: false, error: 'Content is required' };
+      }
+
+      const result = await dialog.showSaveDialog(mainWindow, {
+        filters: [
+          { name: 'All Files', extensions: ['*'] },
+          { name: 'Text Files', extensions: ['txt', 'md', 'json', 'js', 'ts', 'jsx', 'tsx', 'html', 'css', 'py', 'java', 'cpp', 'c', 'h', 'xml', 'yaml', 'yml'] },
+          { name: 'Code Files', extensions: ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'h', 'go', 'rs', 'rb', 'php'] },
+          { name: 'Web Files', extensions: ['html', 'css', 'js', 'ts', 'jsx', 'tsx'] },
+          { name: 'Config Files', extensions: ['json', 'yaml', 'yml', 'xml', 'toml', 'ini'] }
+        ]
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { success: false, error: 'Save cancelled' };
+      }
+
+      const filePath = result.filePath;
+
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // Write file
+      fs.writeFileSync(filePath, content, 'utf-8');
+      
+      // Send save event to renderer
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('file-saved', { filePath });
+      }
+
+      return { success: true, filePath };
+    } catch (err) {
+      console.error('Error saving file as:', err);
+      return { success: false, error: err.message };
+    }
+  });
 }
 
 module.exports = { register };

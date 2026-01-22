@@ -4,13 +4,14 @@ import { refreshGitStatus, refreshCommitHistory } from './git.js';
 
 export function initializeNavigation() {
   const buttons = document.querySelectorAll('.circle-btn');
+  const editorContainer = document.querySelector('.editor-container');
   const editor = document.getElementById('editor');
   const gitView = document.getElementById('gitView');
   const filesView = document.getElementById('filesView');
   const settingsView = document.getElementById('settingsView');
   const settingsBtn = document.getElementById('settingsBtn');
 
-  if (!buttons.length || !editor || !gitView || !filesView || !settingsView) {
+  if (!buttons.length || !editorContainer || !editor || !gitView || !filesView || !settingsView) {
     console.error('Navigation elements not found');
     return;
   }
@@ -22,7 +23,7 @@ export function initializeNavigation() {
       btn.classList.add('active');
 
       // Hide all main views
-      editor.style.display = 'none';
+      editorContainer.style.display = 'none';
       gitView.classList.remove('active');
       filesView.classList.remove('active');
       settingsView.classList.remove('active');
@@ -33,7 +34,7 @@ export function initializeNavigation() {
         refreshGitStatus();
         refreshCommitHistory();
       } else if (btn.id === 'editorBtn') {
-        editor.style.display = 'block';
+        editorContainer.style.display = 'flex';
       } else if (btn.id === 'filesBtn') {
         filesView.classList.add('active');
         // Trigger recent items update when files view is shown

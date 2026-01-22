@@ -123,6 +123,25 @@ function createMenu(mainWindow) {
         },
         { type: 'separator' },
         {
+          label: 'Save',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('menu-save');
+            }
+          }
+        },
+        {
+          label: 'Save As...',
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('menu-save-as');
+            }
+          }
+        },
+        { type: 'separator' },
+        {
           role: 'quit',
           label: 'Exit'
         }
