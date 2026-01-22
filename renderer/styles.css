@@ -265,6 +265,9 @@ body {
     .git-file-path {
       flex: 1;
       word-break: break-all;
+      min-width: 0;
+      padding-left: 4px;
+      overflow: visible;
     }
 
     .git-action-btn {

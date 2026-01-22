@@ -7,7 +7,7 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = windowManager.createMainWindow();
-  
+  dfsfdsfdsafds
   // Initialize IPC handlers with window reference
   ipcHandlers.register(mainWindow);
   

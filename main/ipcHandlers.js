@@ -166,7 +166,21 @@ function register(mainWindow) {
         const status = line.substring(0, 2);
         // Git status --porcelain format: "XY filename" where XY is 2-char status, then space, then filename
         // Position 0-1: status code, position 2: space, position 3+: filename
-        const filePath = line.substring(3).trim();
+        // Use a more robust method: find the space after the 2-char status code
+        const spaceIndex = line.indexOf(' ', 2);
+        if (spaceIndex === -1 || spaceIndex >= line.length - 1) {
+          continue; // Skip invalid lines
+        }
+        // Get everything after the space, preserving the full filename
+        let filePath = line.substring(spaceIndex + 1).trim();
+        
+        // Handle renamed files (format: "R  old -> new" or "R100 old -> new")
+        if (status[0] === 'R' || status[1] === 'R') {
+          const arrowIndex = filePath.indexOf(' -> ');
+          if (arrowIndex !== -1) {
+            filePath = filePath.substring(arrowIndex + 4); // Get filename after " -> "
+          }
+        }
         
         const statusX = status[0]; // Index status
         const statusY = status[1]; // Working tree status
