@@ -52,6 +52,7 @@ function clearGitStatus() {
   const stagedSection = document.getElementById('stagedSection');
   const unstagedSection = document.getElementById('unstagedSection');
   const untrackedSection = document.getElementById('untrackedSection');
+  const commitSection = document.getElementById('commitSection');
   const commitHistorySection = document.getElementById('commitHistorySection');
   const noGitRepo = document.getElementById('noGitRepo');
 
@@ -60,6 +61,7 @@ function clearGitStatus() {
   if (stagedSection) stagedSection.style.display = 'none';
   if (unstagedSection) unstagedSection.style.display = 'none';
   if (untrackedSection) untrackedSection.style.display = 'none';
+  if (commitSection) commitSection.style.display = 'none';
   if (commitHistorySection) commitHistorySection.style.display = 'none';
   if (noGitRepo) noGitRepo.style.display = 'block';
 }
@@ -70,6 +72,7 @@ function showNoGitRepo() {
   const stagedSection = document.getElementById('stagedSection');
   const unstagedSection = document.getElementById('unstagedSection');
   const untrackedSection = document.getElementById('untrackedSection');
+  const commitSection = document.getElementById('commitSection');
   const commitHistorySection = document.getElementById('commitHistorySection');
   const noGitRepo = document.getElementById('noGitRepo');
 
@@ -78,6 +81,7 @@ function showNoGitRepo() {
   if (stagedSection) stagedSection.style.display = 'none';
   if (unstagedSection) unstagedSection.style.display = 'none';
   if (untrackedSection) untrackedSection.style.display = 'none';
+  if (commitSection) commitSection.style.display = 'none';
   if (commitHistorySection) commitHistorySection.style.display = 'none';
   if (noGitRepo) noGitRepo.style.display = 'block';
 }
@@ -140,13 +144,9 @@ function displayGitStatus(status) {
     if (untrackedFiles) untrackedFiles.innerHTML = '';
   }
 
-  // Show commit section if there are staged files
+  // Show commit section when in a git repo (always visible)
   if (commitSection) {
-    if (status.staged && status.staged.length > 0) {
-      commitSection.style.display = 'block';
-    } else {
-      commitSection.style.display = 'none';
-    }
+    commitSection.style.display = 'block';
   }
 }
 
