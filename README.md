@@ -27,9 +27,27 @@ A simple notepad application built with Electron.
 
 To create a distributable package:
 
+**Build for current platform:**
 ```bash
 npm run build
 ```
+
+**Build for specific platforms:**
+```bash
+# Windows
+npm run build:win
+
+# macOS
+npm run build:mac
+
+# Linux
+npm run build:linux
+
+# All platforms
+npm run build:all
+```
+
+Built packages will be output to the `dist` directory.
 
 ## Keyboard Shortcuts
 
