@@ -87,6 +87,19 @@
           <strong>Repository:</strong> <span id="repoPath">No folder opened</span>
         </div>
         
+        <div class="git-section" id="commitSection" style="display: none;">
+          <div class="git-section-title">Commit Changes</div>
+          <div class="commit-form">
+            <textarea 
+              id="commitMessage" 
+              placeholder="Enter commit message..."
+              rows="3"
+            ></textarea>
+            <button id="commitBtn" class="commit-btn">Commit</button>
+            <button id="refreshGitBtn" class="refresh-btn" title="Refresh">↻</button>
+          </div>
+        </div>
+        
         <div class="git-section" id="stagedSection" style="display: none;">
           <div class="git-section-title">Changes to be committed:</div>
           <div id="stagedFiles"></div>
@@ -100,19 +113,6 @@
         <div class="git-section" id="untrackedSection" style="display: none;">
           <div class="git-section-title">Untracked files:</div>
           <div id="untrackedFiles"></div>
-        </div>
-        
-        <div class="git-section" id="commitSection" style="display: none;">
-          <div class="git-section-title">Commit Changes</div>
-          <div class="commit-form">
-            <textarea 
-              id="commitMessage" 
-              placeholder="Enter commit message..."
-              rows="3"
-            ></textarea>
-            <button id="commitBtn" class="commit-btn">Commit</button>
-            <button id="refreshGitBtn" class="refresh-btn" title="Refresh">↻</button>
-          </div>
         </div>
         
         <div class="git-section" id="commitHistorySection" style="display: none;">
