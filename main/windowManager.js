@@ -2,7 +2,10 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-const WINDOW_STATE_FILE = path.join(app.getPath('userData'), 'window-state.json');
+function getWindowStateFilePath() {
+  // Resolve lazily so module initialization does not depend on app timing.
+  return path.join(app.getPath('userData'), 'window-state.json');
+}
 
 function getDefaultWindowState() {
   return {
@@ -16,8 +19,9 @@ function getDefaultWindowState() {
 
 function loadWindowState() {
   try {
-    if (fs.existsSync(WINDOW_STATE_FILE)) {
-      const data = fs.readFileSync(WINDOW_STATE_FILE, 'utf-8');
+    const windowStateFile = getWindowStateFilePath();
+    if (fs.existsSync(windowStateFile)) {
+      const data = fs.readFileSync(windowStateFile, 'utf-8');
       return JSON.parse(data);
     }
   } catch (err) {
@@ -28,6 +32,7 @@ function loadWindowState() {
 
 function saveWindowState(window) {
   try {
+    const windowStateFile = getWindowStateFilePath();
     const bounds = window.getBounds();
     const state = {
       width: bounds.width,
@@ -36,7 +41,7 @@ function saveWindowState(window) {
       y: bounds.y,
       isMaximized: window.isMaximized()
     };
-    fs.writeFileSync(WINDOW_STATE_FILE, JSON.stringify(state, null, 2));
+    fs.writeFileSync(windowStateFile, JSON.stringify(state, null, 2));
   } catch (err) {
     console.error('Error saving window state:', err);
   }

@@ -2,15 +2,19 @@ const { app, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-const RECENT_ITEMS_FILE = path.join(app.getPath('userData'), 'recent-items.json');
+function getRecentItemsFilePath() {
+  // Resolve lazily so this module can be loaded safely during startup.
+  return path.join(app.getPath('userData'), 'recent-items.json');
+}
 
 const MAX_RECENT_FOLDERS = 10;
 const MAX_RECENT_FILES = 10;
 
 function loadRecentItems() {
   try {
-    if (fs.existsSync(RECENT_ITEMS_FILE)) {
-      const data = fs.readFileSync(RECENT_ITEMS_FILE, 'utf-8');
+    const recentItemsFile = getRecentItemsFilePath();
+    if (fs.existsSync(recentItemsFile)) {
+      const data = fs.readFileSync(recentItemsFile, 'utf-8');
       return JSON.parse(data);
     }
   } catch (err) {
@@ -21,7 +25,8 @@ function loadRecentItems() {
 
 function saveRecentItems(items) {
   try {
-    fs.writeFileSync(RECENT_ITEMS_FILE, JSON.stringify(items, null, 2));
+    const recentItemsFile = getRecentItemsFilePath();
+    fs.writeFileSync(recentItemsFile, JSON.stringify(items, null, 2));
   } catch (err) {
     console.error('Error saving recent items:', err);
   }
