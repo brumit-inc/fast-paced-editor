@@ -23,6 +23,7 @@ import {
   saveFileAs
 } from './fileManager.js';
 import { initializeGitActions, initializeCommitButton } from './git.js';
+import { initializeTerminal } from './terminal.js';
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeSettings();
   initializeGitActions();
   initializeCommitButton();
+  initializeTerminal();
   
   // Initialize file tree features
   setupFileTreeSearch();

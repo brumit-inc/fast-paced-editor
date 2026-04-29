@@ -7,11 +7,12 @@ export function initializeNavigation() {
   const editorContainer = document.querySelector('.editor-container');
   const editor = document.getElementById('editor');
   const gitView = document.getElementById('gitView');
+  const terminalView = document.getElementById('terminalView');
   const filesView = document.getElementById('filesView');
   const settingsView = document.getElementById('settingsView');
   const settingsBtn = document.getElementById('settingsBtn');
 
-  if (!buttons.length || !editorContainer || !editor || !gitView || !filesView || !settingsView) {
+  if (!buttons.length || !editorContainer || !editor || !gitView || !terminalView || !filesView || !settingsView) {
     console.error('Navigation elements not found');
     return;
   }
@@ -25,6 +26,7 @@ export function initializeNavigation() {
       // Hide all main views
       editorContainer.style.display = 'none';
       gitView.classList.remove('active');
+      terminalView.classList.remove('active');
       filesView.classList.remove('active');
       settingsView.classList.remove('active');
       
@@ -33,6 +35,12 @@ export function initializeNavigation() {
         // Refresh git status and commit history when git tab is shown
         refreshGitStatus();
         refreshCommitHistory();
+      } else if (btn.id === 'terminalBtn') {
+        terminalView.classList.add('active');
+        const terminalInput = document.getElementById('terminalInput');
+        if (terminalInput) {
+          terminalInput.focus();
+        }
       } else if (btn.id === 'editorBtn') {
         editorContainer.style.display = 'flex';
       } else if (btn.id === 'filesBtn') {

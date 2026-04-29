@@ -18,6 +18,9 @@
     <button class="circle-btn" id="gitBtn" title="Git">
       🔀 <span>Git</span>
     </button>
+    <button class="circle-btn" id="terminalBtn" title="Terminal">
+      💻 <span>Terminal</span>
+    </button>
     <button class="circle-btn" id="settingsBtn" title="Settings">
       ⚙️ <span>Settings</span>
     </button>
@@ -123,6 +126,23 @@
         <div id="noGitRepo" style="color: #888; margin-top: 20px;">
           Open a folder with a Git repository to see status.
         </div>
+      </div>
+    </div>
+
+    <div id="terminalView">
+      <div class="terminal-header">💻 Terminal</div>
+      <div id="terminalOutput" class="terminal-output" aria-live="polite"></div>
+      <div class="terminal-input-row">
+        <span class="terminal-prompt">$</span>
+        <input
+          type="text"
+          id="terminalInput"
+          class="terminal-input"
+          placeholder="Type a command and press Enter"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="terminalRunBtn" class="terminal-run-btn">Run</button>
       </div>
     </div>
 

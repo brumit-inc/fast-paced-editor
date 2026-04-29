@@ -396,9 +396,17 @@ export async function openFileByPath(filePath, folderPath, statusElement) {
     }
     
     const gitView = document.getElementById('gitView');
+    const terminalView = document.getElementById('terminalView');
     const filesView = document.getElementById('filesView');
+    const settingsView = document.getElementById('settingsView');
     gitView.classList.remove('active');
+    if (terminalView) {
+      terminalView.classList.remove('active');
+    }
     filesView.classList.remove('active');
+    if (settingsView) {
+      settingsView.classList.remove('active');
+    }
     
     const buttons = document.querySelectorAll('.circle-btn');
     buttons.forEach(b => b.classList.remove('active'));

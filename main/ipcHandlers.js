@@ -328,6 +328,36 @@ function register(mainWindow) {
     }
   });
 
+  // Run a terminal command
+  ipcMain.handle('terminal-run-command', async (event, command, cwd) => {
+    try {
+      if (!command || typeof command !== 'string' || command.trim().length === 0) {
+        return { success: false, error: 'Command is required', stdout: '', stderr: '' };
+      }
+
+      const options = {};
+      if (cwd && typeof cwd === 'string' && fs.existsSync(cwd)) {
+        options.cwd = cwd;
+      }
+
+      const result = await new Promise((resolve) => {
+        exec(command, options, (error, stdout, stderr) => {
+          resolve({
+            success: !error,
+            stdout: stdout || '',
+            stderr: stderr || '',
+            error: error ? error.message : null
+          });
+        });
+      });
+
+      return result;
+    } catch (err) {
+      console.error('Error running terminal command:', err);
+      return { success: false, stdout: '', stderr: '', error: err.message };
+    }
+  });
+
   // Recent items sync handlers
   ipcMain.handle('sync-recent-folder', async (event, folderName, folderPath) => {
     try {
